@@ -5,6 +5,7 @@ import mailService from "./mail-service.js";
 import tokenService from "./token-service.js";
 import UserDto from "../dtos/user-dto.js";
 import ApiError from "../errors/api-error.js";
+import userModel from "../models/user-model.js";
 
 class UserService {
   async register(email, password) {
@@ -66,13 +67,13 @@ class UserService {
     return token;
   }
 
-  async refres(refreshToken) {
+  async refresh(refreshToken) {
     if (!refreshToken) {
       throw ApiError.UnauthorizedError();
     }
     const userData = tokenService.validateRefreshToken(refreshToken);
     const tokenFromDB = await tokenService.findToken(refreshToken);
-    if (!userData || tokenFromDB) {
+    if (!userData || !tokenFromDB) {
       throw ApiError.UnauthorizedError();
     }
 
@@ -82,6 +83,11 @@ class UserService {
 
     await tokenService.saveToken(userDto.id, tokens.refreshToken);
     return { ...tokens, user: userDto };
+  }
+
+  async getAllUsers() {
+    const users = await userModel.find();
+    return users;
   }
 }
 
